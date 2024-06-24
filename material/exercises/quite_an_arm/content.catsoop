@@ -1,0 +1,410 @@
+<python>ex.content()</python>
+
+In this exercise, you will revisit a problem you've done on paper and solve it using code!
+<footnote>All credit for this problem goes to Principles of Physics: A calculus-based text (4th ed.) by Serway & Jewett.</footnote>
+
+<section>That's Quite an Arm</section>
+
+A stone is thrown from the top of a $45.0$ $m$ building at an angle of $30.0º$ to the horizontal and with an initial speed of $20.0$ $m/s$, as in the following figure.
+
+<center><img src="CURRENT/quite_an_arm.png" height=600></img></center>
+
+Using the following code, we can build the setting of this scenario:
+
+```python
+from vpython import *
+
+building_height = 45 
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, 
+        color=color.blue)
+
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), 
+        radius=1, color=color.red)
+
+ground_length = 100 # arbitrary length
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, 
+        building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+```
+
+<center><img src="CURRENT/setting.png" style='border:4px solid #8db5f2'"></img></center>
+
+<subsection>Initial Conditions</subsection>
+
+First, let's finish defining the initial conditions of the problem. Assume the `vpython` and `math` modules have been imported for you.
+
+<python>
+from vpython import *
+from math import cos, sin, pi
+</python>
+
+<question pythonic>
+csq_name="vel"
+csq_mode="eval"
+csq_code_pre="from vpython import *\nfrom math import cos, sin, pi\n"
+csq_prompt="What is the initial velocity of the stone as a VPython `vector`? `vel=`"
+csq_soln="vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)"
+def abs_vec(vec):
+    return vector(abs(vec.x), abs(vec.y), abs(vec.z))
+def csq_check_function(sub, sol):
+    if not isinstance(sub, vector):
+        return 0, 'Hint: Remember to use a VPython `vector`!'
+    if abs(sub.x - 20*cos(30)) <= 1e-3 or abs(sub.y - 20*sin(30)) <= 1e-3:
+        return 0, 'Hint: The built-in Python `cos` and `sin` functions expect their arguments to be in radians!'
+    return abs_vec(sub-sol).x <= 1e-3 and abs_vec(sub-sol).y <= 1e-3 and abs_vec(sub-sol).z <= 1e-3
+</question>
+
+<question pythonic>
+csq_name="acc"
+csq_mode="eval"
+csq_code_pre="from vpython import *\nfrom math import cos, sin, pi\n"
+csq_prompt="What is the initial velocity of the stone as a VPython `vector`? `acc=`"
+csq_soln="vector(0, -9.8, 0)"
+def abs_vec(vec):
+    return vector(abs(vec.x), abs(vec.y), abs(vec.z))
+def csq_check_function(sub, sol):
+    if not isinstance(sub, vector):
+        return 0, 'Hint: Remember to use a VPython `vector`!'
+    if abs(sub.x - 20*cos(30)) <= 1e-3 or abs(sub.y - 20*sin(30)) <= 1e-3:
+        return 0, 'Hint: The built-in Python `cos` and `sin` functions expect their arguments to be in radians!'
+    return abs_vec(sub-sol).x <= 1e-3 and abs_vec(sub-sol).y <= 1e-3 and abs_vec(sub-sol).z <= 1e-3
+</question>
+
+
+<subsection>Taking Flight</subsection>
+
+With our initial conditions set, we can now simulate the scenario!
+Write a function `timestep` that takes in `dt`, a change in time, and updates the variables and attributes necessary for the simulation to work.
+Assume that all of the code that we've defined up to this point (including `vel` and `acc`) will be run before calling your function.
+
+Hint: What things are changing in this system as time moves forward? What things aren't changing?
+Only consider the variables (and their attributes) that we have defined.
+
+<question vpython>
+csq_name="flight"
+csq_vpython_with_graph = True
+csq_code_pre='''
+building_height = 45
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, color=color.blue)
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), radius=1, color=color.red)
+ground_length = 100
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+
+vel = vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)
+acc = vector(0, -9.8, 0)
+'''
+
+csq_initial='''
+def timestep(dt: float):
+  """
+  vpython has already been imported
+  """
+  global building, stone, ground, vel, acc
+  return
+'''
+
+csq_soln='''
+def timestep(dt: float):
+    global building, stone, ground, vel, acc
+    vel += acc*dt
+    stone.pos += vel*dt
+    return
+'''
+
+csq_code_post='''
+for i in range(50):
+    timestep(.01)
+'''
+
+csq_vpython_sim='''
+scene.background = color.white
+scene.center = vector(ground_length/2, building_height/2, 0)
+
+t = 0
+dt = 0.01
+
+distance_g = graph(xtitle="Time [s]", ytitle="Distance [m]")
+distance_plot = gcurve(color=color.blue)
+velocity_g = graph(xtitle="Time [s]", ytitle="Speed [m/s]")
+velocity_plot = gcurve(color=color.blue)
+
+while True:
+    rate(100)
+    timestep(dt)
+    t += dt
+    distance_plot.plot(t, stone.pos.y)
+    velocity_plot.plot(t, vel.mag)
+    if stone.pos.y < ground.pos.y:
+        print(f"[A] Time in flight: {t} (s).")
+        print(f"[B] Speed just before end: {vel.mag} (m/s).")
+        break
+'''
+
+csq_tests = [
+    {'code': 'ans = stone.pos.x'},
+    {'code': 'ans = stone.pos.y'},
+]
+
+csq_explanation='''
+Nice job! Here is our complete code for the simulation.
+
+```python
+from vpython import *
+
+building_height = 45
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, color=color.blue)
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), radius=1, color=color.red)
+ground_length = 100
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+
+vel = vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)
+acc = vector(0, -9.8, 0)
+dt = 0.01
+
+scene.background = color.white
+scene.center = vector(ground_length/2, building_height/2, 0)
+
+def timestep(dt: float):
+    global building, stone, ground, vel, acc
+    vel += acc*dt
+    stone.pos += vel*dt
+    return
+
+while True:
+    rate(100)
+    timestep(dt)
+    if stone.pos.y < ground.pos.y:
+        break
+```
+'''
+</question>
+
+<subsection>Preliminary Analysis</subsection>
+
+Great! Our simulation looks pretty good. Copy and paste the code that we've built so far
+(under the View Answer > View Explanation buttons above) into the code block below.
+
+Make any modifications you find necessary to answer the following questions.
+
+Hint: You can see the output of any `print` statements that were executed when you run your code.
+
+NOTE: This code block itself is not worth any points, but the following questions are.
+
+<question ungraded_vpython>
+csq_initial='''
+'''
+
+csq_tests = [
+    {'code': 'ans = "This code block is not worth any points"'},
+]
+</question>
+
+<question pythonic>
+csq_name="analysis_a"
+csq_prompt="How long is the stone 'in flight' ($s$)?"
+csq_soln=4.22
+csq_check_function = lambda sub, sol: abs(sub - sol) <= 1e-2
+csq_explanation='''
+```diff
+building_height = 45
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, color=color.blue)
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), radius=1, color=color.red)
+ground_length = 100
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+
+vel = vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)
+acc = vector(0, -9.8, 0)
+dt = 0.01
+
+scene.background = color.white
+scene.center = vector(ground_length/2, building_height/2, 0)
+
++ t=0
+def timestep(dt: float):
+    global building, stone, ground, vel, acc
+    vel += acc*dt
+    stone.pos += vel*dt
+    return
+
+while True:
+    rate(100)
+    timestep(dt)
++    t += dt
+    if stone.pos.y < ground.pos.y:
++        print(t)
+        break
+```
+'''
+</question>
+
+<question pythonic>
+csq_name="analysis_b"
+csq_prompt="What is the speed of the stone just before it strikes the ground (in $m/s$)?"
+csq_soln=35.9
+csq_check_function = lambda sub, sol: abs(sub - sol) <= 1e-1
+csq_explanation='''
+```diff
+building_height = 45
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, color=color.blue)
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), radius=1, color=color.red)
+ground_length = 100
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+
+vel = vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)
+acc = vector(0, -9.8, 0)
+dt = 0.01
+
+scene.background = color.white
+scene.center = vector(ground_length/2, building_height/2, 0)
+
+def timestep(dt: float):
+    global building, stone, ground, vel, acc
+    vel += acc*dt
+    stone.pos += vel*dt
+    return
+
+while True:
+    rate(100)
+    timestep(dt)
+    if stone.pos.y < ground.pos.y:
++        print(vel.mag)
+        break
+```
+'''
+</question>
+
+<subsection>Accuracy</subsection>
+You may have noticed that your simulated answers are not exactly the same as the theoretical answers. Let's take a moment to think about why that is.
+
+<question bigbox>
+csq_name="accuracy"
+csq_prompt="Why is your simulated answer not the same as the theoretical answer? How could we get a more accurate answer?"
+csq_check_function = lambda sub, sol: 1
+csq_cols=100
+csq_explanation='''The reason is due to our terminating condition, which checks for `stone.pos.y < ground.pos.y`. 
+Since our simulation is done in discrete `dt=0.01` timesteps, our stone is 'underneath' the ground when we stop. 
+We can check this by printing out the `y` position of our stone at the time of termination. 
+If we add `print(stone.pos.y)` after our terminating condition, we get a `y` position of `-0.26794000000005375`. 
+We could get a more accurate answer by making `dt` smaller.
+Regardless, it is very unlikely that we will ever get a perfectly accurate solution because of the discrete nature of our simulation.
+'''
+</question>
+
+<subsection>Further Analysis</subsection>
+It would be a shame to spend so much effort setting up our simulation for us to not use it to its full potential! See the power of your simulation by answering the following questions.
+
+<question pythonic>
+csq_name="analysis_c"
+csq_prompt="At what time ($s$) is the stone at the peak of its trajectory?"
+csq_soln=1.02
+csq_check_function = lambda sub, sol: abs(sub - sol) <= 1e-2
+csq_explanation='''
+```diff
+building_height = 45
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, color=color.blue)
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), radius=1, color=color.red)
+ground_length = 100
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+
+vel = vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)
+acc = vector(0, -9.8, 0)
+dt = 0.01
+
+scene.background = color.white
+scene.center = vector(ground_length/2, building_height/2, 0)
+
+t=0
++ ts = []
++ ys = []
+def timestep(dt: float):
+    global building, stone, ground, vel, acc
+    vel += acc*dt
+    stone.pos += vel*dt
+    return
+
+while True:
+    rate(100)
++   ys.append(stone.pos.y)
++   ts.append(t)
+    timestep(dt)
+    t += dt
+    if stone.pos.y < ground.pos.y:
+        max_ind = ys.index(max(ys))
+        print(ts[max_ind])
+        break
+```
+'''
+</question>
+
+<question pythonic>
+csq_name="analysis_d"
+csq_prompt="If the building height is 100 $m$, how long is the stone 'in flight' ($s$)?"
+csq_soln=5.65
+csq_check_function = lambda sub, sol: abs(sub - sol) <= 1e-2
+csq_explanation='''
+```diff
++ building_height = 100
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, color=color.blue)
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), radius=1, color=color.red)
+ground_length = 100
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+
+vel = vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)
+acc = vector(0, -9.8, 0)
+dt = 0.01
+
+scene.background = color.white
+scene.center = vector(ground_length/2, building_height/2, 0)
+
+t=0
+def timestep(dt: float):
+    global building, stone, ground, vel, acc
+    vel += acc*dt
+    stone.pos += vel*dt
+    return
+
+while True:
+    rate(100)
+    timestep(dt)
+    t += dt
+    if stone.pos.y < ground.pos.y:
+        print(t)
+        break
+```
+'''
+</question>
+
+<question pythonic>
+csq_name="analysis_e"
+csq_prompt="If the building height is 100 $m$, what is the speed of the stone just before it strikes the ground (in $m/s$)?"
+csq_soln=48.6
+csq_check_function = lambda sub, sol: abs(sub - sol) <= 1e-1
+csq_explanation='''
+```diff
++ building_height = 100
+building = box(pos=vector(0, building_height/2, 0), length=1, width=1, height=building_height, color=color.blue)
+stone = sphere(pos=vector(building.pos.x, building.pos.y+building.height/2, building.pos.z), radius=1, color=color.red)
+ground_length = 100
+ground = box(pos=vector(building.pos.x+ground_length/2, building.pos.y-building.height/2, building.pos.z), length=ground_length, width=1, height=1, color=color.black)
+
+vel = vector(20*cos(30*pi/180), 20*sin(30*pi/180), 0)
+acc = vector(0, -9.8, 0)
+dt = 0.01
+
+scene.background = color.white
+scene.center = vector(ground_length/2, building_height/2, 0)
+
+def timestep(dt: float):
+    global building, stone, ground, vel, acc
+    vel += acc*dt
+    stone.pos += vel*dt
+    return
+
+while True:
+    rate(100)
+    timestep(dt)
+    if stone.pos.y < ground.pos.y:
+        print(vel.mag)
+        break
+```
+'''
+</question>
