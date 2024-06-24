@@ -398,7 +398,8 @@ material_manager.add([
     Material("exercises", "ex1", "Exercise 1",
              "2023-11-20:09:00", "2023-11-23:23:59"),
     Material("exercises", "ex2", "Exercise 2",
-             "2023-11-29:11:00", "2023-12-4:23:59")
+             "2023-11-29:11:00", "2023-12-4:23:59"),
+    Material("exercises", "quite_an_arm", "Quite an Arm", "ALWAYS", "NEVER"),
 ])
 
 # Grading functions
